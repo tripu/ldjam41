@@ -3,3 +3,5 @@
 My entry for the *compo* category of the [Ludum Dare 41](https://ldjam.com/events/ludum-dare/41) game jam (21&ndash;22 Apr 2018)
 
 [Play the game!](https://tripu.github.io/ldjam41/)
+
+[![A screenshot](art/wip.png)](https://tripu.github.io/ldjam41/)
