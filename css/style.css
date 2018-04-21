@@ -3,9 +3,27 @@
   margin: 0;
   border: 0;
   padding: 0;
-  text-align: center;
+  text-align: left;
   font-family: 'Lucida Sans Unicode', 'Lucida Grande', 'Trebuchet MS', Helvetica, Verdana, Geneva, Calibri, sans-serif;
   background-color: #000000;
   color: #c0c0c0;
   text-rendering: optimizeSpeed;
+  line-height: 1.5em;
+}
+html.no-js main {
+  margin: 4rem;
+  font-size: 150%;
+}
+h1, p, ul {
+  padding: 1rem;
+}
+h1, a:hover, a:active, a:focus {
+  color: #ffffff;
+}
+code {
+  /*font-weight: bold;*/
+  padding: .1em .25em;
+  border: 1px solid #004000;
+  border-radius: .25em;
+  background-color: #004000;
 }
