@@ -5,3 +5,6 @@ My entry for the *compo* category of the [Ludum Dare 41](https://ldjam.com/event
 [Play the game!](https://tripu.github.io/ldjam41/)
 
 [![A screenshot](art/wip.png)](https://tripu.github.io/ldjam41/)
+
+Copyright &copy; 2018 tripu ([`t@tripu.info`](mailto:t@tripu.info), [`https://tripu.info`](https://tripu.info/))  
+Licenced under [Creative Commons Attribution-NonCommercial](http://creativecommons.org/licenses/by-nc/4.0/)

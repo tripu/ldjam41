@@ -2,44 +2,45 @@
 
 <html lang="en-GB" class="no-js">
 
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <title>Ludum Dare 41 - tripu</title>
-        <meta name="application-name" content="Ludum Dare 41 - tripu" />
-        <meta name="author" content="tripu" />
-        <meta name="description" content="Ludum Dare 41 - tripu" />
-        <meta name="keywords" content="ludum,dare,ldjam,tripu" />
-        <link rel="stylesheet" type="text/css" href="css/style.css" />
-        <!-- <link rel="icon" type="image/png" sizes="16x16 32x32" href="icon.png" /> -->
-    </head>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>“Investment Platforms” — tripu's entry for Ludum Dare 41 “compo”</title>
+    <meta name="application-name" content="Investment Platforms" />
+    <meta name="author" content="tripu" />
+    <meta name="description" content="tripu's entry for Ludum Dare 41 “compo”" />
+    <meta name="keywords" content="ludum,dare,ldjam,ludumdare,game,jam,gamejam,tripu,investment,platform,platforms,compo,2018,April,game,phaser,html5" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <!-- <link rel="icon" type="image/png" sizes="16x16 32x32" href="icon.png" /> -->
+  </head>
 
-    <body>
+  <body>
+    <main id="container">
+      <h1>&ldquo;Investment Platforms&rdquo;</h1>
+      <p><em>Make good use of your assets (and liabilities), and survive in financial turmoil!</em></p>
+      <p>Controls:</p>
+      <ul>
+        <li><code class="key">&larr;</code> and <code class="key">&rarr;</code> to move</li>
+        <li><code class="key">&uarr;</code> to jump</li>
+        <li><code class="key">Pause</code> or <code class="key">P</code> to toggle pause</li>
+      </ul>
+      <p class="focus">
+        ▶ ▶ ▶&nbsp;&nbsp;&nbsp;&nbsp;
+        <a id="play" href="#" autofocus tabindex="0">Click here or press <code class="key">Enter</code> to play!</a>
+        &nbsp;&nbsp;&nbsp;&nbsp;◀ ◀ ◀
+      </p>
+      <p class="smaller">
+        Copyright &copy; 2018 tripu
+        <a href="mailto:t@tripu.info"><code>t@tripu.info</code></a>,
+        <a href="https://tripu.info/"><code>https://tripu.info</code></a>.
+        <br />
+        Licenced under <a href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial</a>
+      </p>
 
-        <!-- <header>
-          <h1>Ludum Dare 41 - tripu</h1>
-        </header> -->
-
-        <main id="container">
-          <h1>Investment platforms</h1>
-          <p><em>Make good use of your assets (and liabilities), and survive in financial turmoil!</em></p>
-          <p>Controls:</p>
-          <ul>
-            <li><code>&larr;</code> and <code>&rarr;</code> to move</li>
-            <li><code>&uarr;</code> to jump</li>
-            <li><code>Pause</code> or <code>P</code> to toggle pause</li>
-          </ul>
-          <p><a id="play" href="#" autofocus tabindex="0">Play now!</a></p>
-        </main>
-
-        <!-- <footer>
-          <p>&copy; tripu</p>
-        </footer> -->
-
-        <!-- <script src="//cdn.jsdelivr.net/npm/phaser@3.6.0/dist/phaser.min.js"></script> -->
-        <script src="js/phaser.js"></script>
-        <script src="js/behaviour.js"></script>
-
-    </body>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.6.0/dist/phaser.min.js"></script>
+    <!-- <script src="js/phaser.js"></script> -->
+    <script src="js/behaviour.js"></script>
+  </body>
 
 </html>
