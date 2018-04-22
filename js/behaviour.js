@@ -6,12 +6,49 @@
   //--------------- Macroeconomics
 
   const MACRO = {
-    UNEMP: {type: 'negative', min: .03, max: .11},      // Unemployment (%)
-    INFLATION: {type: 'negative', min: -.15, max: .20}, // Inflation (%)
-    R: {type: 'positive', min: 0, max: .2},             // Interest rate (%)
-    DOW: {type: 'positive', min: 8300, max: 26300},     // Dow Jones index
-    CYCLES: {min: 6, max: 24}         // Duration of cycles (months)
-  };
+      UNEMP: {type: 'negative', min: .03, max: .11},      // Unemployment (%)
+      INFLATION: {type: 'negative', min: -.15, max: .20}, // Inflation (%)
+      R: {type: 'positive', min: 0, max: .2},             // Interest rate (%)
+      DOW: {type: 'positive', min: 8300, max: 26300},     // Dow Jones index
+      CYCLES: {min: 3, max: 12}                           // Duration of cycles (months)
+    },
+    CYCLES = {
+      recession: {msg: 'Oh, no!\nRecession hit!!', sign: -.3},
+      inflation: {msg: 'Welcome to\ninflationary period.', sign: -.15},
+      neutral: {msg: 'Things got normal again.', sign: 0},
+      growth: {msg: 'Markets are\non fire.', sign: .15},
+      expansion: {msg: 'The economy is\nexpanding!!', sign: .3}
+    },
+    MOVES = {
+      good: [
+        'HODL!!',
+        'Collect dividends',
+        'Get your bonus',
+        'Smart crypto',
+        'Be frugal',
+        'You\'re on demand!',
+        'Education pays',
+        'Salary raise!',
+        'Lottery',
+        'Effective Altruism',
+        'Better job'
+      ],
+      bad: [
+        'Pay insurance',
+        'Taxes!',
+        'Prices rise',
+        'Lavish holidays',
+        'Car crash',
+        'No $%^ raise',
+        'Bad stock perf',
+        'Ethereum plummets',
+        'Sell your gold',
+        'Nobody loves you',
+        'LD Jam fiasco',
+        'Banks suffer',
+        'Stuck at work'
+      ]
+    };
 
   //--------------- Environment and game elements
 
@@ -22,14 +59,19 @@
     UH = H - DH,  // Useful Height
     FPS = 60,     // Frames Per Second
     G = UH * 2,   // Gravity
-    J = -UH,       // Jump speed
+    J = -UH,      // Jump speed
     S = W / 200,  // Speed
-    T = FPS,      // Time (how many frames is one month)
-    BS = S / 4,   // Background Speed
-    FS = S / 2,   // Foreground Speed
+    T = FPS * 4,  // Time (how many frames is one month)
+    BSF = .25,    // Background Speed Factor
+    FSF = .5,     // Foreground Speed Factor
     GSF = -S,     // Guy's Speed Forward
     GSB = S * 2,  // Guy's Speed Backward
-    PD = 500,     // Platform Drop duration
+    PDD = 500,    // Platform Drop Duration
+    MD = 1500,    // Message Duration
+    MDD = 200,    // Message Drop Duration
+    CFD = 1000,   // Camera Flash Duration
+    MNP = 12,     // Maximum Number of Platforms
+    LP = 10000,   // Life Price
     TS = {        // Text Style
       fontFamily: 'Helvetica,Verdana,sans-serif',
       fontSize: 18,
@@ -67,22 +109,72 @@
 
   //--------------- Macroeconomics
 
+  const PICK_START_CONDITION = (boundaries) =>
+    boundaries.min + (boundaries.max - boundaries.min) * (.3333 + Math.random() * .3333);
+
+  const EVALUATE_MACRO = (value, boundaries) => (value - boundaries.min) / (boundaries.max - boundaries.min) * ('positive' === boundaries.type ? -1 : 1);
+
+  const COMPUTE_ECONOMY = () => {
+    economyOverall =
+      (EVALUATE_MACRO(economy.unemp, MACRO.UNEMP) +
+      EVALUATE_MACRO(economy.inflation, MACRO.INFLATION) +
+      EVALUATE_MACRO(economy.r, MACRO.R) +
+      EVALUATE_MACRO(economy.dow, MACRO.DOW)) / 4;
+  };
+
   const UPDATE_MACRO = () => {
-    let change = 0;
     cycleDuration ++;
-    if (cycleDuration >= MACRO.CYCLES.max * T)
-      change = 1;
-    else if (cycleDuration >= MACRO.CYCLES.min)
-      change
-    if (change >= 1) {
+    if (cycleDuration >= thisCycleTotal * T) {
+      const C = Object.keys(CYCLES);
+      let newCycle = parseInt(Math.random() * C.length);
+      while (cycle === C[newCycle])
+        newCycle = parseInt(Math.random() * C.length);
+      cycle = C[newCycle];
+      let SIGN = CYCLES[cycle].sign;
+      SHOW_MESSAGE(CYCLES[cycle].msg, SIGN < 0 ? 0xff8080 : (SIGN > 0 ? 0x80ff80 : 0xc0c0c0));
+      thisCycleTotal = MACRO.CYCLES.min + Math.random() * (MACRO.CYCLES.max - MACRO.CYCLES.min),
+      cycleDuration = 0;
     }
   };
 
   //--------------- Our guy's finances
 
+  const COMPUTE_WORTH = () => {
+    worth = assets.cash + assets.bonds + assets.stocks + assets.realEstate + assets.crypto;
+  };
+
+  const UPDATE_CASH = (delta) => {
+    if (assets.cash + delta <= 0) {
+      lives = 1;
+      return RESPAWN_OR_DIE('Bankrupcy!\nYou are in red.');
+    }
+    if (delta > 0)
+      sfx.money.play();
+    else if (delta < 0)
+      sfx.ouch.play();
+    assets.cash += delta;
+    cashMsg.setScale(3);
+    scene.tweens.add({
+      targets: cashMsg,
+      scaleX: 1,
+      scaleY: 1,
+      duration: PDD,
+      ease: 'Quad.easeOut'
+    });
+  };
+
   const UPDATE_GUY = () => {
-    if (0 === elapsed && employed)
-      assets.cash += assets.income / 12;
+    if (0 === elapsed) {
+      const SALARY = assets.income / 12;
+      let delta = 0;
+      if (employed)
+        delta += SALARY;
+      if (healthy)
+        delta -= SALARY * .8;
+      else
+        delta -= SALARY * 1.2;
+      UPDATE_CASH(delta);
+    }
     cashMsg.setText('$' + parseInt(assets.cash));
     cashMsg.x = guy.x - cashMsg.displayWidth / 2;
     cashMsg.y = guy.y - guy.displayHeight;
@@ -100,22 +192,47 @@
     return result;
   };
 
-  const CREATE_PLATFORM = (x, y, s) => {
-    const P = scene.physics.add.staticImage(x, y, 'platform').setScale(s, 1).refreshBody();
-    world.push(P);
+  const CREATE_PLATFORM = (x, y, s, text, c) => {
+    let p = scene.physics.add.staticImage(x, y, 'platform').setScale(s, 1).refreshBody();
+    for (let i of world)
+      if (scene.physics.world.intersects(p.body, i.body)) {
+        p.destroy();
+        p = null;
+        break;
+      }
+    if (p) {
+      world.push(p);
+      if (c)
+        p.tint = c;
+      if (text) {
+        p.label = scene.add.text(x - s * 185 / 2, y, text, {
+          fontFamily: 'Helvetica,Verdana,sans-serif',
+          fontSize: 24,
+          color: '#000000'
+        });
+        p.offsetX = 185 * s / 2.2;
+        p.offsetY = (p.displayHeight - p.label.displayHeight) / 2;
+      }
+      p.id = totalPlats ++;
+    }
+    return p;
   };
 
-  const DESTROY_PLATFORM = (p) => {
-    world.splice(FIND_PLATFORM_INDEX(p), 1);
+  const DESTROY_PLATFORM = (p, hard = false) => {
+    if (hard)
+      world.splice(FIND_PLATFORM_INDEX(p), 1);
+    if (p.label)
+      p.label.destroy();
     p.destroy();
   };
 
   const DROP_PLATFORM = (p) => {
+    world.splice(FIND_PLATFORM_INDEX(p), 1);
     scene.tweens.add({
       targets: p,
       y: H*1.1,
       alpha: 0,
-      duration: PD,
+      duration: PDD,
       ease: 'Quad.easeIn',
       onComplete: () => DESTROY_PLATFORM(p)
     });
@@ -128,48 +245,86 @@
       {x: W*1.2, y: UH*.67, s: 3},
       {x: W*1.5, y: UH/2, s: 1}
     ];
+    bg = scene.add.tileSprite(W/2, UH/2, W, UH, 'bg');
+    bg.tint = 0xc0c0ff;
+    fg = scene.add.tileSprite(W/2, UH/2, W, UH, 'fg');
+    fg.tint = 0xc0ffc0;
     for (let i of START)
       CREATE_PLATFORM(i.x, i.y, i.s);
   };
 
   const UPDATE_WORLD = () => {
-    let rightmost,
-      top = Number.MIN_SAFE_INTEGER,
+    let rightmost = 0,
       lost = [];
     for (let i of world) {
-      const right = i.getBounds().right;
-      if (right < W / -10)
+      const BOUNDS = i.getBounds();
+      if (BOUNDS.right < W / -10) // || BOUNDS.bottom < UH / -10 || BOUNDS.top > UH * 1.1)
         lost.push(i);
-      else if (right > top) {
-        rightmost = i;
-        top = i.getBounds().right;
-      }
+      else if (BOUNDS.RIGHT > rightmost)
+        rightmost = i.getBounds().right;
     }
-    if (top < W * 1.5 && lastPlatform && world.length < 6) {
-      const N = parseInt(1 + Math.random() * 2);
-      console.log(W, top, world.length);
-      console.log('Creating ' + N);
-      for (let i = 0; i < N; i ++) {
-        let x = top + 100 + Math.random() * 200,
-          y = -1;
-        while (y < 100 || y > UH - 100)
-          y = lastPlatform.y + 58 - 300 + Math.random() * 600;
-        CREATE_PLATFORM(x, y, 1 + Math.random() * 3);
+    if (/* rightmost < W * 1.5 && */ lastPlatform && world.length < MNP) {
+      const N = MNP - world.length,
+        BASE = lastPlatform.y;
+      let created = 0;
+      while (created < N) {
+        const PROB = Math.random();
+        let p,
+          x = rightmost - 200 + Math.random() * 4000,
+          y = -1,
+          v,
+          c,
+          m;
+        while (y < 0 || y > UH)
+          y = BASE /* + 53 */ - 300 + Math.random() * 600;
+        if (PROB >= .8) {
+          v = assets.income / 48;
+          c = 0x00ff00;
+          m = MOVES.good[parseInt(Math.random() * MOVES.good.length)];
+        } else
+          if (PROB <= .2) {
+            v = assets.income / -48;
+            c = 0xff0000;
+            m = MOVES.bad[parseInt(Math.random() * MOVES.bad.length)];
+        }
+        if (!v)
+          c = (parseInt(64 + Math.random() * 128) << 16) +
+            (parseInt(64 + Math.random() * 128) << 8) +
+            parseInt(64 + Math.random() * 128);
+        p = CREATE_PLATFORM(x, y, 1 + Math.random() * 4, m, c);
+        if (p) {
+          if (v)
+            p.value = v;
+          created ++;
+        }
       }
     }
     for (let i of lost)
-      DESTROY_PLATFORM(i);
+      DESTROY_PLATFORM(i, true);
+    bg.tilePositionX += S * BSF;
+    bg.tilePositionY -= S * BSF * CYCLES[cycle].sign;
+    fg.tilePositionX += S * FSF;
+    fg.tilePositionY -= S * FSF * CYCLES[cycle].sign;
+    for (let i of world) {
+      i.x -= S;
+      i.y += S * CYCLES[cycle].sign;
+      i.refreshBody();
+      if (i.label) {
+        i.label.x = i.x - i.offsetX;
+        i.label.y = i.y - i.offsetY;
+      }
+    }
   };
 
   //--------------- Dashboard
 
   const INIT_DASHBOARD = () => {
-    dashb.unemp = scene.add.text(0, H - DH, 'Unemp:\nn/a', TS);
-    dashb.inflation = scene.add.text(200, H - DH, 'Inflation:\nn/a', TS);
-    dashb.r = scene.add.text(400, H - DH, 'Int. rate:\nn/a', TS);
-    dashb.dow = scene.add.text(600, H - DH, 'Dow Jones:\nn/a', TS);
-    dashb.overall = scene.add.text(W - 200, H - DH, 'Economy:\nn/a', TS);
-    dashb.date = scene.add.text(W * .9, 0, 'n/a', TS);
+    dashb.unemp = scene.add.text(W/6, H - DH, 'Unemp:\nn/a', TS);
+    dashb.inflation = scene.add.text(W/6*2, H - DH, 'Inflation:\nn/a', TS);
+    dashb.r = scene.add.text(W/6*3, H - DH, 'Int. rate:\nn/a', TS);
+    dashb.dow = scene.add.text(W/6*4, H - DH, 'Dow Jones:\nn/a', TS);
+    dashb.overall = scene.add.text(W/6*5, H - DH, 'Economy:\nn/a', TS);
+    dashb.date = scene.add.text(W * .94, 10, 'n/a', TS);
   };
 
   const UPDATE_DASHBOARD = () => {
@@ -188,19 +343,6 @@
 
   //--------------- Helpers
 
-  const PICK_START_CONDITION = (boundaries) =>
-    boundaries.min + (boundaries.max - boundaries.min) * (.3333 + Math.random() * .3333);
-
-  const EVALUATE_MACRO = (value, boundaries) => (value - boundaries.min) / (boundaries.max - boundaries.min) * ('positive' === boundaries.type ? -1 : 1);
-
-  const COMPUTE_ECONOMY = () => {
-    economyOverall =
-      (EVALUATE_MACRO(economy.unemp, MACRO.UNEMP) +
-      EVALUATE_MACRO(economy.inflation, MACRO.INFLATION) +
-      EVALUATE_MACRO(economy.r, MACRO.R) +
-      EVALUATE_MACRO(economy.dow, MACRO.DOW)) / 4;
-  };
-
   const COLOURISE_MACRO = (value, boundaries) => {
     const R = EVALUATE_MACRO(value, boundaries);
     if (R < .2)
@@ -215,25 +357,94 @@
       return '#00ff00';
   };
 
-  const PAUSE = () => {
-    scene.physics.world.isPaused = !scene.physics.world.isPaused;
+  const BUY_LIFE = () => {
+    if (assets.cash > LP) {
+      scene.cameras.main.flash(CFD, 255, 255, 255);
+      sfx.warning.play();
+      assets.cash -= LP;
+      livesCounter.push(scene.add.image(20 * (lives + 1), 20, 'guy').setScale(.4));
+      lives ++;
+    }
   };
-
-  const COMPUTE_WORTH = () => {
-    worth = assets.cash + assets.bonds + assets.stocks + assets.realEstate + assets.crypto;
+  const PAUSE = () => {
+    if(scene.physics.world.isPaused) {
+      sfx.music.resume();
+      scene.physics.world.isPaused = false;
+    } else {
+      sfx.music.pause();
+      scene.physics.world.isPaused = true;
+    }
   };
 
   const HANDLE_COLLISION = (foo, image) => {
-    // if(!(foo.body.touching.down && image.body.touching.up) &&
-    //   !(false === foo.body.touching.down && false === foo.body.touching.up && false === image.body.touching.down && false === image.body.touching.up))
-    //   console.log(foo.body.touching.down, foo.body.touching.up, image.body.touching.down, image.body.touching.up);
     if (image && foo.body.touching.down) {
       if (!lastPlatform)
         lastPlatform = image;
       else if (image !== lastPlatform) {
         DROP_PLATFORM(lastPlatform);
         lastPlatform = image;
+        if (image.value)
+          UPDATE_CASH(image.value);
       }
+    }
+  };
+
+  const INIT_MESSAGE = () => {
+    message = scene.add.text(-W, -H, '', {
+      fontFamily: 'Helvetica,Verdana,sans-serif',
+      fontSize: 72,
+      fontWeight: 'bold',
+      color: '#ffffff',
+    });
+    message.alpha = 0;
+  };
+
+  const SHOW_MESSAGE = (text, c, duration) => {
+    if (text) {
+      scene.children.bringToTop(message);
+      sfx.warning.play();
+      scene.physics.world.isPaused = true;
+      scene.cameras.main.flash(CFD, (c & 0xff0000) >> 16, (c & 0xff00) >> 8, c & 0xff);
+      message.setText(text);
+      message.x = (W -  message.displayWidth) / 2;
+      message.y = -message.displayHeight;
+      scene.tweens.add({
+        targets: message,
+        y: (UH - message.displayHeight) / 2,
+        alpha: 1,
+        duration: MDD,
+        ease: 'Quad.easeOut',
+        onComplete: () => {
+          scene.tweens.add({
+            targets: message,
+            y: H,
+            alpha: 0,
+            delay: duration ? duration : MD,
+            duration: MDD,
+            ease: 'Quad.easeOut',
+            onComplete: () => {
+              scene.physics.world.isPaused = false;
+            }
+          });
+        }
+      });
+    }
+  };
+
+  const RESPAWN_OR_DIE = (message) => {
+    sfx.ouch.play();
+    assets.cash /= 2;
+    lives --;
+    livesCounter.pop().destroy();
+    if (lives > 0) {
+      guy.setVelocity(0, 0);
+      guy.x = W / 2;
+      guy.y = UH / 4;
+      scene.cameras.main.flash(CFD, 255, 255, 255);
+    } else {
+      SHOW_MESSAGE(message ? message : 'The system crunched you!\nYou made $' + parseInt(assets.cash) + '.', 0xff0000, 10000)
+      cashMsg.destroy();
+      over = true;
     }
   };
 
@@ -246,39 +457,56 @@
     scene.load.image('fg', 'img/fg.png');
     scene.load.image('platform', 'img/platform.png');
     scene.load.image('guy', 'img/guy.png');
+    scene.load.audio('music', 'snd/music.mp3');
+    scene.load.audio('warning', 'snd/warning.mp3');
     scene.load.audio('jump', 'snd/uh.mp3');
+    scene.load.audio('money', 'snd/money.mp3');
+    scene.load.audio('ouch', 'snd/ouch.mp3');
   };
 
   function CREATE() {
-    bg = scene.add.tileSprite(W/2, UH/2, W, UH, 'bg');
-    fg = scene.add.tileSprite(W/2, UH/2, W, UH, 'fg');
+    const DIM_MUSIC = () => {
+      sfx.music.mute = true;
+    };
+    const RESUME_MUSIC = () => {
+      sfx.music.mute = over;
+    };
     INIT_WORLD();
-    guy = scene.physics.add.sprite(W/4, UH/2-27-31, 'guy');
-    // guy.setBounce(.3);
-    guy.setCollideWorldBounds(false);
-    // scene.physics.world.collide(guy, world, HANDLE_COLLISION);
-    // for (let p of world)
-      scene.physics.add.collider(guy, world, HANDLE_COLLISION);
-    wealthMsg = scene.add.text(0, 0, 'n/a', TS);
-    cashMsg = scene.add.text(0, 0, 'n/a', TS);
-    message = scene.add.text(16, 16, '', TS);
     INIT_DASHBOARD();
+    INIT_MESSAGE();
+    guy = scene.physics.add.sprite(W/2, UH/2-28-33, 'guy');
+    guy.setBounce(.3);
+    guy.setCollideWorldBounds(false);
+    scene.physics.add.collider(guy, world, HANDLE_COLLISION);
+    livesCounter.push(scene.add.image(20, 20, 'guy').setScale(.4));
+    livesCounter.push(scene.add.image(40, 20, 'guy').setScale(.4));
+    livesCounter.push(scene.add.image(60, 20, 'guy').setScale(.4));
+    cashMsg = scene.add.text(0, 0, 'n/a', TS);
+    sfx.music = scene.sound.add('music');
+    sfx.music.setLoop(true);
+    sfx.warning = scene.sound.add('warning');
+    sfx.warning.on('play', DIM_MUSIC);
+    sfx.warning.on('ended', RESUME_MUSIC);
     sfx.uh = scene.sound.add('jump');
-    // this.physics.add.collider(world, guy, HANDLE_COLLISION);
-    // this
+    sfx.money = scene.sound.add('money');
+    sfx.money.on('PLAY', DIM_MUSIC);
+    sfx.money.on('ended', RESUME_MUSIC);
+    sfx.ouch = scene.sound.add('ouch');
     controls.cursor = scene.input.keyboard.createCursorKeys();
     scene.input.keyboard.on('keydown_PAUSE', PAUSE);
     scene.input.keyboard.on('keydown_P', PAUSE);
+    scene.input.keyboard.on('keydown_SPACE', BUY_LIFE);
+    sfx.music.play();
   };
 
   function UPDATE(delta) {
     if (over)
       return window.setTimeout(() => {
-        // game.destroy(true);
-        // return window.setTimeout(() => {
-        //   window.location.reload(false);
-        // }, 2000);
-      }, 2000);
+        game.destroy(true);
+        return window.setTimeout(() => {
+          window.location.reload(false);
+        }, 1000);
+      }, 10000);
     if (scene.physics.world.isPaused)
       return;
     elapsed++;
@@ -289,6 +517,14 @@
         month = 0;
       }
       elapsed = 0;
+      dashb.date.setScale(3);
+      scene.tweens.add({
+        targets: dashb.date,
+        scaleX: 1,
+        scaleY: 1,
+        duration: PDD,
+        ease: 'Quad.easeOut'
+      });
     }
     COMPUTE_ECONOMY();
     COMPUTE_WORTH();
@@ -296,38 +532,21 @@
     UPDATE_GUY();
     UPDATE_WORLD();
     UPDATE_DASHBOARD();
-    message.setText();
-    bg.tilePositionX += BS;
-    fg.tilePositionX += FS;
-    console.dir(world.length);
-    for (let i of world) {
-      if (!i.refreshBody)
-        console.dir(world);
-      i.x -= S;
-      i.refreshBody();
-      // i.body.x -= S;
-    }
-    if (guy.y >= UH) {
-      message.setText('You\'re bankrupt! Game over :(');
-      over = true;
-      return;
-    }
-    if (guy.x <= 0) {
-      message.setText('The system crunched you! Game over :(');
-      over = true;
-      return;
-    }
-    if (guy.y >= UH - guy.height / 2 || guy.x <= guy.width / 2)
-      this.cameras.main.shake(50, 0.01);
-    if (controls.cursor.left.isDown)
-      guy.x -= GSB;
-    else if (controls.cursor.right.isDown)
-      guy.x -= GSF;
-    else
-      guy.x -= S;
-    if (controls.cursor.up.isDown && guy.body.touching.down) {
-      guy.setVelocityY(J);
-      sfx.uh.play();
+    if (guy.y >= UH || guy.x <= 0)
+      RESPAWN_OR_DIE();
+    else {
+      if (guy.y >= UH - guy.height / 2 || guy.x <= guy.width / 2)
+        scene.cameras.main.shake(100, 0.05);
+      if (controls.cursor.left.isDown)
+        guy.x -= GSB;
+      else if (controls.cursor.right.isDown)
+        guy.x -= GSF;
+      else
+        guy.x -= S;
+      if (controls.cursor.up.isDown && guy.body.touching.down) {
+        guy.setVelocityY(J);
+        sfx.uh.play();
+      }
     }
   };
 
@@ -335,10 +554,11 @@
 
   const START = (e) => {
     const CONTAINER = document.getElementById('container');
-    if (e && 'Enter' === e.code) {
+    if (e && ('Enter' === e.code || 'click' === e.type)) {
       if (e.cancelable)
         e.preventDefault();
       document.removeEventListener('keydown', START);
+      document.getElementById('play').removeEventListener('click', START);
       CONTAINER.innerHTML = null;
       game = new Phaser.Game(CONFIG);
     }
@@ -360,6 +580,7 @@
 
   let cycle = 'neutral',
     cycleDuration = 0,
+    thisCycleTotal = MACRO.CYCLES.min + Math.random() * (MACRO.CYCLES.max - MACRO.CYCLES.min),
     economy = {
       unemp: PICK_START_CONDITION(MACRO.UNEMP),
       inflation: PICK_START_CONDITION(MACRO.INFLATION),
@@ -370,8 +591,9 @@
 
   //--------------- Our guy's finances
 
-  let assets = {
-      cash: 2000,
+  let lives = 3,
+    assets = {
+      cash: 20000,
       income: 40000,
       bonds: 0,
       stocks: 0,
@@ -404,9 +626,10 @@
     fg,
     world = [],
     guy,
-    wealthMsg,
+    livesCounter = [],
     cashMsg,
     message,
+    totalPlats = 0;
     dashb = {},
     sfx = {};
 

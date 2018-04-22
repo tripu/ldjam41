@@ -29,7 +29,7 @@ h1, .focus {
   text-align: center;
   font-size: 1.5rem;
 }
-h1, p, ul {
+h1, p {
   padding: 1rem;
 }
 h1, a:hover, a:active, a:focus {

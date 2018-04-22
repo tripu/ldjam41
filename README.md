@@ -4,6 +4,8 @@ My entry for the *compo* category of the [Ludum Dare 41](https://ldjam.com/event
 
 [Play the game!](https://tripu.github.io/ldjam41/)
 
+[![An animted GIF](art/capture.gif)](https://tripu.github.io/ldjam41/)
+
 [![A screenshot](art/wip.png)](https://tripu.github.io/ldjam41/)
 
 Copyright &copy; 2018 tripu ([`t@tripu.info`](mailto:t@tripu.info), [`https://tripu.info`](https://tripu.info/))  
