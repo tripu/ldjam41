@@ -4,13 +4,13 @@ My entry for the *compo* category of the [Ludum Dare 41](https://ldjam.com/event
 
 [Play the game!](https://tripu.github.io/ldjam41/)
 
-[An animated GIF](art/capture.gif)]
+![An animated GIF](art/capture.gif)
 
-[Screenshot #1](art/screenshot-1.png)]
+![Screenshot #1](art/screenshot-1.png)
 
-[Screenshot #2](art/screenshot-2.png)]
+![Screenshot #2](art/screenshot-2.png)
 
-[Screenshot #3](art/screenshot-3.png)]
+![Screenshot #3](art/screenshot-3.png)
 
 Copyright &copy; 2018 tripu ([`t@tripu.info`](mailto:t@tripu.info), [`https://tripu.info`](https://tripu.info/))  
 Licenced under [Creative Commons Attribution-NonCommercial](http://creativecommons.org/licenses/by-nc/4.0/)
